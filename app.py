@@ -53,6 +53,7 @@ def api_process():
         
         data = request.get_json()
         file_url = data.get('file_url', '').strip()
+        episode_url = data.get('episode_url', '').strip()
         
         if not file_url:
             return jsonify({'error': 'ファイルURLを入力してください'}), 400
@@ -91,7 +92,7 @@ def api_process():
         # バックグラウンドで処理を実行
         thread = threading.Thread(
             target=process_podcast_background,
-            args=(task_id, file_url, user_settings)
+            args=(task_id, file_url, episode_url, user_settings)
         )
         thread.daemon = True
         thread.start()
@@ -226,7 +227,7 @@ def debug_wordpress_test():
         logger.error(f"トレースバック: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
-def process_podcast_background(task_id: str, file_url: str, user_settings: dict):
+def process_podcast_background(task_id: str, file_url: str, episode_url: str, user_settings: dict):
     """バックグラウンドでポッドキャスト処理"""
     try:
         from config.settings import load_settings
@@ -285,7 +286,7 @@ def process_podcast_background(task_id: str, file_url: str, user_settings: dict)
         # Step 3: ブログ記事生成
         update_status(3, 4, 'ブログ記事生成', 'Claude AIで記事生成中...')
         generator = BlogGenerator(merged_settings)
-        article_data = generator.generate_article(transcript)
+        article_data = generator.generate_article(transcript, episode_url)
         update_status(3, 4, 'ブログ記事生成', f'記事生成完了: {article_data["title"]}')
         
         # 結果を先に保存（WordPress投稿に失敗しても記事は保存）

@@ -489,7 +489,7 @@
                     </div>
                     <div class="accordion-content" id="wordpressSettings">
                         <div class="form-group">
-                            <label for="wpSiteUrl">WordPressサイトURL</label>
+                            <label for="wpSiteUrl">ブログトップURL(https://yourblog.domain)</label>
                             <input 
                                 type="url" 
                                 id="wpSiteUrl" 
@@ -644,6 +644,7 @@
         function collectSettings() {
             return {
                 file_url: document.getElementById('fileUrl').value.trim(),
+                episode_url: document.getElementById('episodeUrl').value.trim(),
                 settings: {
                     article: {
                         reference_url: document.getElementById('referenceUrl').value.trim(),

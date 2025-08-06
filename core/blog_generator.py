@@ -20,7 +20,7 @@ class BlogGenerator:
         self.claude_client = Anthropic(api_key=get_api_key())
         self.user_settings = user_settings
     
-    def generate_article(self, transcript: str) -> dict:
+    def generate_article(self, transcript: str, episode_url: str = "") -> dict:
         """文字起こし結果をブログ記事に変換"""
         logger.info("ブログ記事への変換開始")
         
@@ -28,7 +28,7 @@ class BlogGenerator:
         reference_style = self._get_reference_style()
         
         # プロンプトを構築
-        prompt = self._build_prompt(transcript, reference_style)
+        prompt = self._build_prompt(transcript, reference_style, episode_url)
         
         try:
             # Claude APIで生成
@@ -69,7 +69,7 @@ class BlogGenerator:
             logger.warning(f"参考サイトの取得に失敗: {e}")
             return ""
     
-    def _build_prompt(self, transcript: str, reference_style: str) -> str:
+    def _build_prompt(self, transcript: str, reference_style: str, episode_url: str = "") -> str:
         """プロンプトを構築"""
         article_settings = self.user_settings.get("article", {})
         custom_style = article_settings.get("custom_style", "")
@@ -109,7 +109,9 @@ class BlogGenerator:
     - 推測や想像での補完は禁止です
     - 文字起こしにない具体的な数値、日付、人名、会社名は使用禁止
     - 「〜と思われます」「〜の可能性があります」など推測表現も避けてください
-11. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加してください
+11. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加してください{f'''
+12. 【重要】埋め込みURLが提供されている場合は、記事の末尾（注釈の前）に以下のようにSpotify埋め込みコードを追加してください：
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/{episode_url.split('/')[-1] if episode_url else ''}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>''' if episode_url else ''}
 
 {style_instruction}
 
@@ -201,11 +203,11 @@ class BlogGenerator:
         
         if char_count < min_characters:
             logger.info("文字数不足のため詳細化を実行中...")
-            return self._expand_article(article_data, min_characters)
+            return self._expand_article(article_data, min_characters, episode_url)
         
         return article_data
     
-    def _expand_article(self, article_data: dict, min_characters: int) -> dict:
+    def _expand_article(self, article_data: dict, min_characters: int, episode_url: str = "") -> dict:
         """記事を詳細化"""
         expand_prompt = f"""
 以下の記事内容を基に、各セクションをより詳細に展開し、{min_characters}文字以上の完全な記事にしてください。
@@ -219,7 +221,9 @@ class BlogGenerator:
 3. 文字起こしで言及された内容の背景を詳しく説明
 4. 新しい情報は一切追加せず、既存情報の深掘りのみ
 5. 必ず{min_characters}文字以上にしてください
-6. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加
+6. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加{f'''
+7. 【重要】埋め込みURLが提供されている場合は、記事の末尾（注釈の前）にSpotify埋め込みコードを追加してください：
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/{episode_url.split('/')[-1] if episode_url else ''}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>''' if episode_url else ''}
 
 以下のJSON形式で出力してください：
 {{
