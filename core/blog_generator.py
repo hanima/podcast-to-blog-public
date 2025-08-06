@@ -91,6 +91,15 @@ class BlogGenerator:
 {custom_style}
 """
         
+        # Spotify埋め込みの指示を動的に追加
+        spotify_instruction = ""
+        if episode_url:
+            episode_id = episode_url.split('/')[-1] if '/' in episode_url else episode_url
+            spotify_instruction = f"""
+12. 【重要】記事の末尾（注釈の前）に以下のSpotify埋め込みコードを必ず追加してください：
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/{episode_id}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+"""
+
         prompt = f"""
 以下のポッドキャストの文字起こし結果を、読みやすいブログ記事に変換してください。
 
@@ -109,9 +118,7 @@ class BlogGenerator:
     - 推測や想像での補完は禁止です
     - 文字起こしにない具体的な数値、日付、人名、会社名は使用禁止
     - 「〜と思われます」「〜の可能性があります」など推測表現も避けてください
-11. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加してください{f'''
-12. 【重要】埋め込みURLが提供されている場合は、記事の末尾（注釈の前）に以下のようにSpotify埋め込みコードを追加してください：
-<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/{episode_url.split('/')[-1] if episode_url else ''}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>''' if episode_url else ''}
+11. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加してください{spotify_instruction}
 
 {style_instruction}
 
@@ -209,6 +216,15 @@ class BlogGenerator:
     
     def _expand_article(self, article_data: dict, min_characters: int, episode_url: str = "") -> dict:
         """記事を詳細化"""
+        # Spotify埋め込みの指示を動的に追加
+        spotify_instruction = ""
+        if episode_url:
+            episode_id = episode_url.split('/')[-1] if '/' in episode_url else episode_url
+            spotify_instruction = f"""
+7. 【重要】記事の末尾（注釈の前）に以下のSpotify埋め込みコードを必ず追加してください：
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/{episode_id}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+"""
+
         expand_prompt = f"""
 以下の記事内容を基に、各セクションをより詳細に展開し、{min_characters}文字以上の完全な記事にしてください。
 
@@ -221,9 +237,7 @@ class BlogGenerator:
 3. 文字起こしで言及された内容の背景を詳しく説明
 4. 新しい情報は一切追加せず、既存情報の深掘りのみ
 5. 必ず{min_characters}文字以上にしてください
-6. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加{f'''
-7. 【重要】埋め込みURLが提供されている場合は、記事の末尾（注釈の前）にSpotify埋め込みコードを追加してください：
-<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/{episode_url.split('/')[-1] if episode_url else ''}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>''' if episode_url else ''}
+6. 記事の末尾に「※この記事はポッドキャスト音声データを元にAIが書き起こし、編集したものです。」を追加{spotify_instruction}
 
 以下のJSON形式で出力してください：
 {{

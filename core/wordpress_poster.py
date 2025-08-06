@@ -169,10 +169,14 @@ class WordPressPoster:
                 'post_title': article_data['title'],
                 'content': article_data['content'],
                 'excerpt': article_data.get('summary', ''),
-                'post_status': 'publish' if self.status == 'publish' else 'draft',
-                'publish': '公開' if self.status == 'publish' else '下書きとして保存',
-                'save': '公開' if self.status == 'publish' else '下書きとして保存'
+                'post_status': 'publish' if self.status == 'publish' else 'draft'
             }
+            
+            # ステータスに応じて適切なボタンフィールドのみを追加
+            if self.status == 'publish':
+                post_data['publish'] = '公開'
+            else:
+                post_data['save'] = '下書きとして保存'
             
             # 重要な隠しフィールドのみを追加
             important_fields = ['_wpnonce', '_wp_http_referer', 'user_ID', 'post_ID', 'post_type', 'action', 'originalaction']
